@@ -1,0 +1,295 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Note</title>
+  <style>
+    #canvas {
+      border: 1px solid black;
+    }
+    body{
+        display: flex;
+        align-items:center;
+        justify-content: center;
+        flex-direction: column;
+    }
+    #content{
+        height:150px;
+        width:1800px;
+    }
+  </style>
+</head>
+<body>
+    <div id="welcomeMessage"></div>
+  <form id="noteForm">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+    <br>
+    <label for="content">Content:</label>
+    <textarea id="content" name="content" required></textarea>
+    <br>
+    <div id="controls">
+        <label for="colorPicker">Select Color: </label>
+        <input type="color" id="colorPicker" value="#000000">
+    </div>
+    <label for="drawing">Drawing:</label>
+    <br>
+    <canvas id="canvas" width="1800px" height="600px"></canvas>
+    <br>
+    <button type="button" onclick="clearCanvas()">Clear Canvas</button>
+    <br>
+    <button type="submit">Create Note</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let currentColor = '#000000'; // default color
+    let drawing = false;
+    const colorPicker = document.getElementById('colorPicker');
+        colorPicker.addEventListener('input', () => {
+            currentColor = colorPicker.value;
+        });
+    canvas.addEventListener('mousedown', () => { drawing = true; });
+    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousemove', draw);
+
+    function draw(event) {
+      if (!drawing) return;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = currentColor;
+      ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    document.getElementById('noteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const content = document.getElementById('content').value;
+      const drawing = canvas.toDataURL();
+
+      const response = await fetch('/notes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title, content, drawing })
+      });
+
+      const result = await response.json();
+      document.getElementById('result').innerHTML = `<p>Note created! View Note @<a href="${result.url}">https://pixel-pad.onrender.com/${result.url}</a></p>`;
+    });
+
+    window.onload = () => {
+      const username = localStorage.getItem('username');
+      if (username) {
+        document.getElementById('welcomeMessage').innerHTML = `<h1>Hello, ${username}! Start by taking today's notes</h1>`;
+        setTimeout(() => {
+          localStorage.removeItem('username');
+          alert('Session expired. Please log in again.');
+          window.location.href = 'login.html';
+        }, 600000); // 600,000 milliseconds = 10 minutes
+      } else {
+        window.location.href = 'login.html';
+      }
+    };
+  </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Note</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background-color: #f0f0f0;
+      margin: 0;
+      height: 100vh;
+    }
+    #header {
+      width: 100%;
+      background-color: #EFCB68;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+    }
+    #header img {
+      width: 80px;
+      height: 80px;
+    }
+    #welcomeMessage {
+      margin-right: 20px;
+    }
+    #formContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #noteForm {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    #noteForm label {
+      margin: 10px 0 5px;
+    }
+    #formRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    #title {
+      width: 48%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    #content {
+      width: 48%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      height: 15px; /* Adjust height to match the title input */
+    }
+    #controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      background-color: #AEB7B3;
+      padding: 20px;
+      border-radius: 10px;
+      margin-right: 20px;
+      height: auto;
+    }
+    #controls label, #controls input, #controls button {
+      margin-bottom: 10px;
+    }
+    #canvasContainer {
+      display: flex;
+      width: 100%;
+    }
+    #canvas {
+      border: 1px solid black;
+      flex-grow: 1;
+      width: 20%;
+    }
+    #result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <img src="./WhatsApp Image 2024-07-20 at 16.48.22_f00ea134.jpg" alt="Logo">
+    <div id="welcomeMessage">Hello, Karthik! Start by taking today's notes</div>
+  </div>
+  <div id="formContainer">
+    <form id="noteForm">
+      <div id="formRow">
+        <label for="title">Title</label>
+        <label for="content">Content</label>
+      </div>
+      <div id="formRow">
+        <input type="text" id="title" name="title" required>
+        <textarea id="content" name="content" rows="2" required></textarea>
+      </div>
+      <div id="canvasContainer">
+        <div id="controls">
+          <label for="colorPicker">Select Color:</label>
+          <input type="color" id="colorPicker" value="#000000">
+          <button type="button" onclick="clearCanvas()">Clear Canvas</button>
+          <button type="submit">Create Note</button>
+        </div>
+        <canvas id="canvas" width="1500px" height="600px"></canvas>
+      </div>
+    </form>
+  </div>
+  <div id="result"></div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let currentColor = '#000000';
+    let drawing = false;
+    const colorPicker = document.getElementById('colorPicker');
+
+    colorPicker.addEventListener('input', () => {
+      currentColor = colorPicker.value;
+    });
+
+    canvas.addEventListener('mousedown', () => { drawing = true; });
+    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousemove', draw);
+
+    function draw(event) {
+      if (!drawing) return;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = currentColor;
+      ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    document.getElementById('noteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const content = document.getElementById('content').value;
+      const drawing = canvas.toDataURL();
+
+      const response = await fetch('/notes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title, content, drawing })
+      });
+
+      const result = await response.json();
+      document.getElementById('result').innerHTML = `<p>Note created! View Note @<a href="${result.url}">https://pixel-pad.onrender.com/${result.url}</a></p>`;
+    });
+
+    window.onload = () => {
+      const username = localStorage.getItem('username');
+      if (username) {
+        document.getElementById('welcomeMessage').innerHTML = `Hello, ${username}! Start by taking today's notes`;
+        setTimeout(() => {
+          localStorage.removeItem('username');
+          alert('Session expired. Please log in again.');
+          window.location.href = 'login.html';
+        }, 600000); // 600,000 milliseconds = 10 minutes
+      } else {
+        window.location.href = 'login.html';
+      }
+    };
+  </script>
+</body>
+</html>

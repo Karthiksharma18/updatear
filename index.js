@@ -47,17 +47,30 @@ app.post('/login', async(req, res) => {
   });
 
 // Endpoint to create a new note
-app.post('/notes', (req, res) => {
-  const { title, content, drawing } = req.body;
+app.post('/notes', async(req, res) => {
+  const { title, content, drawing ,username} = req.body;
   const id = shortid.generate();
   const note = { title, content, drawing };
   notes[id] = note;
-
+  const user = await UserSchema.findOne({UserName:username})
+  console.log(user)
+  if(user){
+    const path = `http://localhost:3000/notes/${id}`
+    user.notes.push(path)
+    await user.save();
+  }
   const filePath = path.join(__dirname, 'public', 'notes', `${id}.json`);
   fs.writeFileSync(filePath, JSON.stringify(note), 'utf8');
 
-  res.json({ id, url: `/notes/${id}` });
+  console.log(notesArr)
+  res.json({ id, url: `/notes/${id}`});
 });
+app.post("/allNotes",async(req,res)=>{
+  const {username} = req.body;
+  const user2 = await UserSchema.findOne({UserName:username})
+  let notesArr = user2.notes;
+  res.json({notesArr:notesArr})
+})
 
 // Endpoint to get a note by ID
 app.get('/notes/:id', (req, res) => {

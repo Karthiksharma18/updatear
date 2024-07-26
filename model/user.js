@@ -13,7 +13,12 @@ const userSchema = new mongoose.Schema({
     password:{
         type:String,
         required:true
+    },
+    notes:{
+        type:[String],
+        default:[]
     }
+
 })
 
 const UserSchema = mongoose.model("modal",userSchema)

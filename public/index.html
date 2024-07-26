@@ -155,6 +155,7 @@
       margin: 10px 0 5px;
     }
     #formRow {
+      height:100px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -168,6 +169,7 @@
     }
     #content {
       width: 48%;
+      height:80%;
       padding: 10px;
       margin-bottom: 10px;
       border: 1px solid #ccc;
@@ -183,6 +185,7 @@
       border-radius: 10px;
       margin-right: 20px;
       height: auto;
+      width:300px;
     }
     #controls label, #controls input, #controls button {
       margin-bottom: 10px;
@@ -194,7 +197,6 @@
     #canvas {
       border: 1px solid black;
       flex-grow: 1;
-      width: 20%;
     }
     #result {
       margin-top: 20px;
@@ -222,8 +224,11 @@
           <input type="color" id="colorPicker" value="#000000">
           <button type="button" onclick="clearCanvas()">Clear Canvas</button>
           <button type="submit">Create Note</button>
+          <div id="noteLinks">
+            <!-- Note links will be appended here -->
         </div>
-        <canvas id="canvas" width="1500px" height="600px"></canvas>
+        </div>
+        <canvas id="canvas" width="1200px" height="500px"></canvas>
       </div>
     </form>
   </div>
@@ -235,7 +240,7 @@
     let currentColor = '#000000';
     let drawing = false;
     const colorPicker = document.getElementById('colorPicker');
-
+    let notesArr;
     colorPicker.addEventListener('input', () => {
       currentColor = colorPicker.value;
     });
@@ -259,28 +264,59 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    function updateNoteLinks(noteUrls) {
+        const noteLinksContainer = document.getElementById('noteLinks');
+        
+        // Clear existing note links
+        noteLinksContainer.innerHTML = '';
+
+        // Append new note links
+        noteUrls.forEach(url => {
+          const noteId = url.split('/').pop();  // Extract the note ID from the URL
+            const link = document.createElement('a');
+            link.href = url;
+            link.textContent = noteId;
+            link.target = '_blank';
+            noteLinksContainer.appendChild(link);
+
+            const br = document.createElement('br');  // Add line break for better readability
+            noteLinksContainer.appendChild(br);
+        });
+    }
+
     document.getElementById('noteForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
       const drawing = canvas.toDataURL();
+      const username = localStorage.getItem('username');
 
       const response = await fetch('/notes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ title, content, drawing })
+        body: JSON.stringify({ title, content, drawing ,username})
       });
-
       const result = await response.json();
       document.getElementById('result').innerHTML = `<p>Note created! View Note @<a href="${result.url}">https://pixel-pad.onrender.com/${result.url}</a></p>`;
     });
 
-    window.onload = () => {
+    window.onload = async() => {
       const username = localStorage.getItem('username');
       if (username) {
         document.getElementById('welcomeMessage').innerHTML = `Hello, ${username}! Start by taking today's notes`;
+        const response = await fetch('/allNotes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({username})
+        
+      });
+      const result = await response.json();
+      console.log(result.notesArr)
+      updateNoteLinks(result.notesArr)
         setTimeout(() => {
           localStorage.removeItem('username');
           alert('Session expired. Please log in again.');

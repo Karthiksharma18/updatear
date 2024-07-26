@@ -61,8 +61,6 @@ app.post('/notes', async(req, res) => {
   }
   const filePath = path.join(__dirname, 'public', 'notes', `${id}.json`);
   fs.writeFileSync(filePath, JSON.stringify(note), 'utf8');
-
-  console.log(notesArr)
   res.json({ id, url: `/notes/${id}`});
 });
 app.post("/allNotes",async(req,res)=>{
